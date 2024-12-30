@@ -8,7 +8,7 @@ from datetime import datetime
 # Google OAuth Configuration
 CLIENT_SECRETS_FILE = "client_secrets.json"
 SCOPES = ["https://www.googleapis.com/auth/drive", "https://www.googleapis.com/auth/spreadsheets"]
-REDIRECT_URI = "http://localhost:8501/"  # For local testing or update for your deployed URL
+REDIRECT_URI = "http://ilai-restaurant.streamlit.app/"  # For local testing or update for your deployed URL
 
 st.title("Employee Sign-In with Google Authentication")
 
