@@ -49,7 +49,7 @@ if st.session_state.credentials is None:
             }
             st.query_params.clear()
             st.experimental_rerun()
-        except Exception as e:
+        except Exception:
             st.error("Authentication failed. Please try again.")
             st.stop()
     else:
@@ -87,6 +87,7 @@ else:
     if "show_app" not in st.session_state:
         if st.button("Continue to App"):
             st.session_state.show_app = True
+            st.experimental_rerun()
         st.stop()
 
     client = gspread.authorize(creds)
@@ -100,16 +101,22 @@ else:
         sheet = spreadsheet.sheet1
         st.success("New spreadsheet created successfully!")
 
-    employee_name = st.text_input("Enter your name", key="name_input")
-    employee_id = st.text_input("Enter your ID", key="id_input")
+    if "name_input" not in st.session_state:
+        st.session_state.name_input = ""
+    if "id_input" not in st.session_state:
+        st.session_state.id_input = ""
+
+    employee_name = st.text_input("Enter your name", value=st.session_state.name_input, key="name_input")
+    employee_id = st.text_input("Enter your ID", value=st.session_state.id_input, key="id_input")
 
     if st.button("Sign In"):
         if employee_name and employee_id:
             sign_in_time = datetime.now().strftime("%I:%M %p, %b %d, %Y")
-            st.success(f"Signed in successfully at {sign_in_time}")
             try:
                 sheet.append_row([employee_name, employee_id, sign_in_time, "Sign In"])
-                st.success("Sign-in details saved to Google Sheets.")
+                st.success(f"Signed in successfully at {sign_in_time}")
+                st.session_state.name_input = ""
+                st.session_state.id_input = ""
                 st.experimental_rerun()
             except Exception as e:
                 st.error(f"Failed to save to Google Sheets: {e}")
@@ -119,10 +126,11 @@ else:
     if st.button("Sign Out"):
         if employee_name and employee_id:
             sign_out_time = datetime.now().strftime("%I:%M %p, %b %d, %Y")
-            st.success(f"Signed out successfully at {sign_out_time}")
             try:
                 sheet.append_row([employee_name, employee_id, sign_out_time, "Sign Out"])
-                st.success("Sign-out details saved to Google Sheets.")
+                st.success(f"Signed out successfully at {sign_out_time}")
+                st.session_state.name_input = ""
+                st.session_state.id_input = ""
                 st.experimental_rerun()
             except Exception as e:
                 st.error(f"Failed to save to Google Sheets: {e}")
