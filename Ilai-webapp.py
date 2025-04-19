@@ -18,26 +18,24 @@ st.title("Employee Sign-In with Google Authentication")
 if "credentials" not in st.session_state:
     st.session_state.credentials = None
 
-if "clear_fields" not in st.session_state:
-    st.session_state.clear_fields = False
+query_params = st.query_params
 
 if st.session_state.credentials is None:
-    query_params = st.query_params
     if "code" in query_params:
-        flow = Flow.from_client_config(
-            {
-                "web": {
-                    "client_id": client_id,
-                    "client_secret": client_secret,
-                    "redirect_uris": [REDIRECT_URI],
-                    "auth_uri": "https://accounts.google.com/o/oauth2/auth",
-                    "token_uri": "https://oauth2.googleapis.com/token"
-                }
-            },
-            scopes=SCOPES,
-            redirect_uri=REDIRECT_URI
-        )
         try:
+            flow = Flow.from_client_config(
+                {
+                    "web": {
+                        "client_id": client_id,
+                        "client_secret": client_secret,
+                        "redirect_uris": [REDIRECT_URI],
+                        "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+                        "token_uri": "https://oauth2.googleapis.com/token"
+                    }
+                },
+                scopes=SCOPES,
+                redirect_uri=REDIRECT_URI
+            )
             flow.fetch_token(code=query_params["code"])
             credentials = flow.credentials
 
@@ -49,11 +47,11 @@ if st.session_state.credentials is None:
                 "client_secret": credentials.client_secret,
                 "scopes": credentials.scopes,
             }
-            st.success("Google Sign-In successful! You can now access the app.")
             st.query_params.clear()
             st.experimental_rerun()
-        except Exception:
+        except Exception as e:
             st.error("Authentication failed. Please try again.")
+            st.stop()
     else:
         flow = Flow.from_client_config(
             {
@@ -71,6 +69,7 @@ if st.session_state.credentials is None:
         auth_url, _ = flow.authorization_url(prompt="consent")
         st.write("Click below to sign in with Google:")
         st.write(f"[Sign in with Google]({auth_url})")
+        st.stop()
 else:
     creds = Credentials(
         token=st.session_state.credentials["token"],
@@ -85,6 +84,11 @@ else:
 
     st.success("Authenticated with Google!")
 
+    if "show_app" not in st.session_state:
+        if st.button("Continue to App"):
+            st.session_state.show_app = True
+        st.stop()
+
     client = gspread.authorize(creds)
 
     try:
@@ -96,11 +100,6 @@ else:
         sheet = spreadsheet.sheet1
         st.success("New spreadsheet created successfully!")
 
-    if st.session_state.clear_fields:
-        st.session_state["name_input"] = ""
-        st.session_state["id_input"] = ""
-        st.session_state.clear_fields = False
-
     employee_name = st.text_input("Enter your name", key="name_input")
     employee_id = st.text_input("Enter your ID", key="id_input")
 
@@ -111,7 +110,6 @@ else:
             try:
                 sheet.append_row([employee_name, employee_id, sign_in_time, "Sign In"])
                 st.success("Sign-in details saved to Google Sheets.")
-                st.session_state.clear_fields = True
                 st.experimental_rerun()
             except Exception as e:
                 st.error(f"Failed to save to Google Sheets: {e}")
@@ -125,7 +123,6 @@ else:
             try:
                 sheet.append_row([employee_name, employee_id, sign_out_time, "Sign Out"])
                 st.success("Sign-out details saved to Google Sheets.")
-                st.session_state.clear_fields = True
                 st.experimental_rerun()
             except Exception as e:
                 st.error(f"Failed to save to Google Sheets: {e}")
