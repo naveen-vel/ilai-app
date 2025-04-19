@@ -45,9 +45,11 @@ if st.session_state.credentials is None:
             "client_secret": credentials.client_secret,
             "scopes": credentials.scopes,
         }
-        st.success("Google Sign-In successful! You can now access the app.")
-        st.query_params.clear()
-        st.experimental_rerun()
+        st.success("Google Sign-In successful!")
+        if st.button("Continue to app"):
+            st.query_params.clear()
+            st.experimental_rerun()
+
     else:
         flow = Flow.from_client_config(
             {
