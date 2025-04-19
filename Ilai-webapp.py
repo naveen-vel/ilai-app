@@ -7,7 +7,7 @@ from datetime import datetime
 
 # OAuth scopes and redirect URL
 SCOPES = ["https://www.googleapis.com/auth/drive", "https://www.googleapis.com/auth/spreadsheets"]
-REDIRECT_URI = "https://ilai-restaurant.streamlit.app"
+REDIRECT_URI = "https://ilai-restaurant.streamlit.app"  # For deployment on Streamlit Cloud
 
 # Load client ID and secret from Streamlit secrets
 client_id = st.secrets["google_oauth"]["client_id"]
@@ -18,10 +18,12 @@ st.title("Employee Sign-In with Google Authentication")
 if "credentials" not in st.session_state:
     st.session_state.credentials = None
 
-# Handle OAuth callback
-query_params = st.query_params
-if st.session_state.credentials is None and "code" in query_params:
-    try:
+if "clear_fields" not in st.session_state:
+    st.session_state.clear_fields = False
+
+if st.session_state.credentials is None:
+    query_params = st.query_params
+    if "code" in query_params:
         flow = Flow.from_client_config(
             {
                 "web": {
@@ -35,43 +37,40 @@ if st.session_state.credentials is None and "code" in query_params:
             scopes=SCOPES,
             redirect_uri=REDIRECT_URI
         )
-        flow.fetch_token(code=query_params["code"])
-        credentials = flow.credentials
+        try:
+            flow.fetch_token(code=query_params["code"])
+            credentials = flow.credentials
 
-        st.session_state.credentials = {
-            "token": credentials.token,
-            "refresh_token": credentials.refresh_token,
-            "token_uri": credentials.token_uri,
-            "client_id": credentials.client_id,
-            "client_secret": credentials.client_secret,
-            "scopes": credentials.scopes,
-        }
-
-        st.query_params.clear()
-        st.experimental_rerun()
-    except Exception as e:
-        st.error("Authentication failed. Please try again.")
-        st.stop()
-
-# If not logged in, show sign-in link
-if st.session_state.credentials is None:
-    flow = Flow.from_client_config(
-        {
-            "web": {
-                "client_id": client_id,
-                "client_secret": client_secret,
-                "redirect_uris": [REDIRECT_URI],
-                "auth_uri": "https://accounts.google.com/o/oauth2/auth",
-                "token_uri": "https://oauth2.googleapis.com/token"
+            st.session_state.credentials = {
+                "token": credentials.token,
+                "refresh_token": credentials.refresh_token,
+                "token_uri": credentials.token_uri,
+                "client_id": credentials.client_id,
+                "client_secret": credentials.client_secret,
+                "scopes": credentials.scopes,
             }
-        },
-        scopes=SCOPES,
-        redirect_uri=REDIRECT_URI
-    )
-    auth_url, _ = flow.authorization_url(prompt="consent")
-    st.write("Click below to sign in with Google:")
-    st.write(f"[Sign in with Google]({auth_url})")
-
+            st.success("Google Sign-In successful! You can now access the app.")
+            st.query_params.clear()
+            st.experimental_rerun()
+        except Exception:
+            st.error("Authentication failed. Please try again.")
+    else:
+        flow = Flow.from_client_config(
+            {
+                "web": {
+                    "client_id": client_id,
+                    "client_secret": client_secret,
+                    "redirect_uris": [REDIRECT_URI],
+                    "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+                    "token_uri": "https://oauth2.googleapis.com/token"
+                }
+            },
+            scopes=SCOPES,
+            redirect_uri=REDIRECT_URI
+        )
+        auth_url, _ = flow.authorization_url(prompt="consent")
+        st.write("Click below to sign in with Google:")
+        st.write(f"[Sign in with Google]({auth_url})")
 else:
     creds = Credentials(
         token=st.session_state.credentials["token"],
@@ -97,23 +96,22 @@ else:
         sheet = spreadsheet.sheet1
         st.success("New spreadsheet created successfully!")
 
-    # Initialize session fields
-    if "name_input" not in st.session_state:
-        st.session_state.name_input = ""
-    if "id_input" not in st.session_state:
-        st.session_state.id_input = ""
+    if st.session_state.clear_fields:
+        st.session_state["name_input"] = ""
+        st.session_state["id_input"] = ""
+        st.session_state.clear_fields = False
 
-    name = st.text_input("Enter your name", value=st.session_state.name_input, key="name_input")
-    emp_id = st.text_input("Enter your ID", value=st.session_state.id_input, key="id_input")
+    employee_name = st.text_input("Enter your name", key="name_input")
+    employee_id = st.text_input("Enter your ID", key="id_input")
 
     if st.button("Sign In"):
-        if name and emp_id:
+        if employee_name and employee_id:
             sign_in_time = datetime.now().strftime("%I:%M %p, %b %d, %Y")
+            st.success(f"Signed in successfully at {sign_in_time}")
             try:
-                sheet.append_row([name, emp_id, sign_in_time, "Sign In"])
-                st.success(f"{name} signed in at {sign_in_time}")
-                st.session_state.name_input = ""
-                st.session_state.id_input = ""
+                sheet.append_row([employee_name, employee_id, sign_in_time, "Sign In"])
+                st.success("Sign-in details saved to Google Sheets.")
+                st.session_state.clear_fields = True
                 st.experimental_rerun()
             except Exception as e:
                 st.error(f"Failed to save to Google Sheets: {e}")
@@ -121,13 +119,13 @@ else:
             st.error("Please enter both your name and ID.")
 
     if st.button("Sign Out"):
-        if name and emp_id:
+        if employee_name and employee_id:
             sign_out_time = datetime.now().strftime("%I:%M %p, %b %d, %Y")
+            st.success(f"Signed out successfully at {sign_out_time}")
             try:
-                sheet.append_row([name, emp_id, sign_out_time, "Sign Out"])
-                st.success(f"{name} signed out at {sign_out_time}")
-                st.session_state.name_input = ""
-                st.session_state.id_input = ""
+                sheet.append_row([employee_name, employee_id, sign_out_time, "Sign Out"])
+                st.success("Sign-out details saved to Google Sheets.")
+                st.session_state.clear_fields = True
                 st.experimental_rerun()
             except Exception as e:
                 st.error(f"Failed to save to Google Sheets: {e}")
