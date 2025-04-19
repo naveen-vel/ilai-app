@@ -21,31 +21,40 @@ if "credentials" not in st.session_state:
 if st.session_state.credentials is None:
     query_params = st.query_params
     if "code" in query_params:
-        flow = Flow.from_client_config(
-            {
-                "web": {
-                    "client_id": client_id,
-                    "client_secret": client_secret,
-                    "redirect_uris": [REDIRECT_URI],
-                    "auth_uri": "https://accounts.google.com/o/oauth2/auth",
-                    "token_uri": "https://oauth2.googleapis.com/token"
-                }
-            },
-            scopes=SCOPES,
-            redirect_uri=REDIRECT_URI
-        )
-        flow.fetch_token(code=query_params["code"])
-        credentials = flow.credentials
+        try:
+            flow = Flow.from_client_config(
+                {
+                    "web": {
+                        "client_id": client_id,
+                        "client_secret": client_secret,
+                        "redirect_uris": [REDIRECT_URI],
+                        "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+                        "token_uri": "https://oauth2.googleapis.com/token"
+                    }
+                },
+                scopes=SCOPES,
+                redirect_uri=REDIRECT_URI
+            )
+            flow.fetch_token(code=query_params["code"])
+            credentials = flow.credentials
 
-        st.session_state.credentials = {
-            "token": credentials.token,
-            "refresh_token": credentials.refresh_token,
-            "token_uri": credentials.token_uri,
-            "client_id": credentials.client_id,
-            "client_secret": credentials.client_secret,
-            "scopes": credentials.scopes,
-        }
-        st.success("Google Sign-In successful!")
+            st.session_state.credentials = {
+                "token": credentials.token,
+                "refresh_token": credentials.refresh_token,
+                "token_uri": credentials.token_uri,
+                "client_id": credentials.client_id,
+                "client_secret": credentials.client_secret,
+                "scopes": credentials.scopes,
+            }
+
+            st.query_params.clear() # Clear URL code so refresh won't break it
+            st.experimental_rerun()
+
+        except:
+            st.error("Authentication failed. Please try again")
+
+
+        # st.success("Google Sign-In successful!")
         if st.button("Continue to app"):
             st.query_params.clear()
             st.experimental_rerun()
@@ -94,12 +103,12 @@ else:
 
     # Clear fields logic
     if 'name_input' not in st.session_state:
-        st.session_state.name_input = ''
+        st.session_state.name_input = ""
     if 'id_input' not in st.session_state:
-        st.session_state.id_input = ''
+        st.session_state.id_input = ""
 
-    employee_name = st.text_input("Enter your name", value=st.session_state.name_input)
-    employee_id = st.text_input("Enter your ID", value=st.session_state.id_input)
+    employee_name = st.text_input("Enter your name", key="name_input")
+    employee_id = st.text_input("Enter your ID", key="id_input")
 
     if st.button("Sign In"):
         if employee_name and employee_id:
@@ -110,8 +119,8 @@ else:
                 st.success("Sign-in details saved to Google Sheets.")
 
                 # Clear input fields after success
-                st.session_state.name_input = ''
-                st.session_state.id_input = ''
+                st.session_state.name_input = ""
+                st.session_state.id_input = ""
 
             except Exception as e:
                 st.error(f"Failed to save to Google Sheets: {e}")
@@ -124,8 +133,8 @@ else:
             st.success(f"Signed out successfully at {sign_out_time}")
             
             # Clear input fields after success
-            st.session_state.name_input = ''
-            st.session_state.id_input = ''
+            st.session_state.name_input = ""
+            st.session_state.id_input = ""
 
 
             try:
