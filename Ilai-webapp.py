@@ -92,8 +92,8 @@ else:
         sheet = spreadsheet.sheet1
         st.success("New spreadsheet created successfully!")
 
-    employee_name = st.text_input("Enter your name")
-    employee_id = st.text_input("Enter your ID")
+    employee_name = st.text_input("Enter your name", key="name_input")
+    employee_id = st.text_input("Enter your ID", key="id_input")
 
     if st.button("Sign In"):
         if employee_name and employee_id:
@@ -102,6 +102,11 @@ else:
             try:
                 sheet.append_row([employee_name, employee_id, sign_in_time, "Sign In"])
                 st.success("Sign-in details saved to Google Sheets.")
+
+                # Clear input fields after success
+                st.session_state.name_input = ""
+                st.session_state.id_input = ""
+
             except Exception as e:
                 st.error(f"Failed to save to Google Sheets: {e}")
         else:
@@ -111,6 +116,12 @@ else:
         if employee_name and employee_id:
             sign_out_time = datetime.now().strftime("%I:%M %p, %b %d, %Y")
             st.success(f"Signed out successfully at {sign_out_time}")
+            
+            # Clear input fields after success
+            st.session_state.name_input = ""
+            st.session_state.id_input = ""
+
+
             try:
                 sheet.append_row([employee_name, employee_id, sign_out_time, "Sign Out"])
                 st.success("Sign-out details saved to Google Sheets.")
