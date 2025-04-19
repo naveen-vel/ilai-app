@@ -49,8 +49,9 @@ if st.session_state.credentials is None and "code" in query_params:
 
         st.query_params.clear()
         st.experimental_rerun()
-    except Exception:
+    except Exception as e:
         st.error("Authentication failed. Please try again.")
+        st.stop()
 
 # If not logged in, show sign-in link
 if st.session_state.credentials is None:
