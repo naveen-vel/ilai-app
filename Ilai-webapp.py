@@ -92,8 +92,14 @@ else:
         sheet = spreadsheet.sheet1
         st.success("New spreadsheet created successfully!")
 
-    employee_name = st.text_input("Enter your name", key="name_input")
-    employee_id = st.text_input("Enter your ID", key="id_input")
+    # Clear fields logic
+    if 'name_input' not in st.session_state:
+        st.session_state.name_input = ''
+    if 'id_input' not in st.session_state:
+        st.session_state.id_input = ''
+
+    employee_name = st.text_input("Enter your name", value=st.session_state.name_input)
+    employee_id = st.text_input("Enter your ID", value=st.session_state.id_input)
 
     if st.button("Sign In"):
         if employee_name and employee_id:
@@ -104,8 +110,8 @@ else:
                 st.success("Sign-in details saved to Google Sheets.")
 
                 # Clear input fields after success
-                st.session_state.name_input = ""
-                st.session_state.id_input = ""
+                st.session_state.name_input = ''
+                st.session_state.id_input = ''
 
             except Exception as e:
                 st.error(f"Failed to save to Google Sheets: {e}")
@@ -118,8 +124,8 @@ else:
             st.success(f"Signed out successfully at {sign_out_time}")
             
             # Clear input fields after success
-            st.session_state.name_input = ""
-            st.session_state.id_input = ""
+            st.session_state.name_input = ''
+            st.session_state.id_input = ''
 
 
             try:
