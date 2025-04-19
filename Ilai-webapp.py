@@ -22,33 +22,36 @@ query_params = st.query_params
 
 if st.session_state.credentials is None:
     if "code" in query_params:
-        flow = Flow.from_client_config(
-            {
-                "web": {
-                    "client_id": client_id,
-                    "client_secret": client_secret,
-                    "redirect_uris": [REDIRECT_URI],
-                    "auth_uri": "https://accounts.google.com/o/oauth2/auth",
-                    "token_uri": "https://oauth2.googleapis.com/token"
-                }
-            },
-            scopes=SCOPES,
-            redirect_uri=REDIRECT_URI
-        )
-        flow.fetch_token(code=query_params["code"])
-        credentials = flow.credentials
+        try:
+            flow = Flow.from_client_config(
+                {
+                    "web": {
+                        "client_id": client_id,
+                        "client_secret": client_secret,
+                        "redirect_uris": [REDIRECT_URI],
+                        "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+                        "token_uri": "https://oauth2.googleapis.com/token"
+                    }
+                },
+                scopes=SCOPES,
+                redirect_uri=REDIRECT_URI
+            )
+            flow.fetch_token(code=query_params["code"])
+            credentials = flow.credentials
 
-        st.session_state.credentials = {
-            "token": credentials.token,
-            "refresh_token": credentials.refresh_token,
-            "token_uri": credentials.token_uri,
-            "client_id": credentials.client_id,
-            "client_secret": credentials.client_secret,
-            "scopes": credentials.scopes,
-        }
-        st.query_params.clear()
-        st.experimental_rerun()
-
+            st.session_state.credentials = {
+                "token": credentials.token,
+                "refresh_token": credentials.refresh_token,
+                "token_uri": credentials.token_uri,
+                "client_id": credentials.client_id,
+                "client_secret": credentials.client_secret,
+                "scopes": credentials.scopes,
+            }
+            st.query_params.clear()
+            st.experimental_rerun()  # Trigger rerun to move to the authenticated app state
+        except Exception as e:
+            st.error(f"Authentication failed. Please try again. {str(e)}")
+            st.stop()
     else:
         flow = Flow.from_client_config(
             {
@@ -84,7 +87,7 @@ else:
     if "show_app" not in st.session_state:
         if st.button("Continue to App"):
             st.session_state.show_app = True
-            st.experimental_rerun()
+            st.experimental_rerun()  # Trigger rerun to show app interface after login
         st.stop()
 
     client = gspread.authorize(creds)
@@ -112,9 +115,10 @@ else:
             try:
                 sheet.append_row([employee_name, employee_id, sign_in_time, "Sign In"])
                 st.success(f"Signed in successfully at {sign_in_time}")
+                # Clear fields after successful sign-in
                 st.session_state.name_input = ""
                 st.session_state.id_input = ""
-                st.experimental_rerun()
+                # No need for rerun, we just clear and update the UI
             except Exception as e:
                 st.error(f"Failed to save to Google Sheets: {e}")
         else:
@@ -126,9 +130,10 @@ else:
             try:
                 sheet.append_row([employee_name, employee_id, sign_out_time, "Sign Out"])
                 st.success(f"Signed out successfully at {sign_out_time}")
+                # Clear fields after successful sign-out
                 st.session_state.name_input = ""
                 st.session_state.id_input = ""
-                st.experimental_rerun()
+                # No need for rerun, we just clear and update the UI
             except Exception as e:
                 st.error(f"Failed to save to Google Sheets: {e}")
         else:
