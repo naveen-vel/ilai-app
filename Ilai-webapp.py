@@ -48,7 +48,7 @@ if st.session_state.credentials is None:
                 "scopes": credentials.scopes,
             }
             st.query_params.clear()
-            st.experimental_rerun()  # Trigger rerun to move to the authenticated app state
+            st.rerun()  # Replacing experimental_rerun with st.rerun
         except Exception as e:
             st.error(f"Authentication failed. Please try again. {str(e)}")
             st.stop()
@@ -87,7 +87,7 @@ else:
     if "show_app" not in st.session_state:
         if st.button("Continue to App"):
             st.session_state.show_app = True
-            st.experimental_rerun()  # Trigger rerun to show app interface after login
+            st.rerun()  # Replacing experimental_rerun with st.rerun
         st.stop()
 
     client = gspread.authorize(creds)
