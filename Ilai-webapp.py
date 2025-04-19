@@ -51,7 +51,7 @@ if st.session_state.credentials is None:
             st.experimental_rerun()
         except Exception:
             st.error("Authentication failed. Please try again.")
-            st.stop()
+            # st.stop()
     else:
         flow = Flow.from_client_config(
             {
