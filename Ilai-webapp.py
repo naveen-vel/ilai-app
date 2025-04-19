@@ -22,36 +22,33 @@ query_params = st.query_params
 
 if st.session_state.credentials is None:
     if "code" in query_params:
-        try:
-            flow = Flow.from_client_config(
-                {
-                    "web": {
-                        "client_id": client_id,
-                        "client_secret": client_secret,
-                        "redirect_uris": [REDIRECT_URI],
-                        "auth_uri": "https://accounts.google.com/o/oauth2/auth",
-                        "token_uri": "https://oauth2.googleapis.com/token"
-                    }
-                },
-                scopes=SCOPES,
-                redirect_uri=REDIRECT_URI
-            )
-            flow.fetch_token(code=query_params["code"])
-            credentials = flow.credentials
+        flow = Flow.from_client_config(
+            {
+                "web": {
+                    "client_id": client_id,
+                    "client_secret": client_secret,
+                    "redirect_uris": [REDIRECT_URI],
+                    "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+                    "token_uri": "https://oauth2.googleapis.com/token"
+                }
+            },
+            scopes=SCOPES,
+            redirect_uri=REDIRECT_URI
+        )
+        flow.fetch_token(code=query_params["code"])
+        credentials = flow.credentials
 
-            st.session_state.credentials = {
-                "token": credentials.token,
-                "refresh_token": credentials.refresh_token,
-                "token_uri": credentials.token_uri,
-                "client_id": credentials.client_id,
-                "client_secret": credentials.client_secret,
-                "scopes": credentials.scopes,
-            }
-            st.query_params.clear()
-            st.experimental_rerun()
-        except Exception:
-            st.error("Authentication failed. Please try again.")
-            # st.stop()
+        st.session_state.credentials = {
+            "token": credentials.token,
+            "refresh_token": credentials.refresh_token,
+            "token_uri": credentials.token_uri,
+            "client_id": credentials.client_id,
+            "client_secret": credentials.client_secret,
+            "scopes": credentials.scopes,
+        }
+        st.query_params.clear()
+        st.experimental_rerun()
+
     else:
         flow = Flow.from_client_config(
             {
