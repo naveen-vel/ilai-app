@@ -175,8 +175,8 @@ with col1:
             sheet.append_row([employee_name, current_date, current_time, '', '', '', '', current_week])
             st.session_state.status_message = f"✅ Checked in at {current_time}"
             st.session_state.message_timestamp = time.time()
-            # send_telegram_alert(f"{employee_name} checked in at {current_time}")
-            # st.rerun()
+            send_telegram_alert(f"{employee_name} checked in at {current_time}")
+            st.rerun()
         else:
             st.session_state.status_message = "⚠️ You have already checked in today."
             st.session_state.message_timestamp = time.time()
@@ -206,9 +206,8 @@ with col2:
                 sheet.update_cell(row_index, 7, total_hours)
                 st.session_state.status_message = f"✅ Checked out at {current_time}. Total hours: {total_hours}"
                 st.session_state.message_timestamp = time.time()
-                # send_telegram_alert(f"{employee_name} checked out at {current_time} and spent {total_hours} hours today")
-                # st.rerun()
-
+                send_telegram_alert(f"{employee_name} checked out at {current_time} and spent {total_hours} hours today")
+                st.rerun()
             else:
                 row_index = records.index(latest_entry) + 2
                 sheet.update_cell(row_index, 4, current_time)
@@ -226,8 +225,8 @@ with col2:
                 sheet.update_cell(row_index, 7, total_hours)
                 st.session_state.status_message = f"✅ Checked out at {current_time}. Total hours: {total_hours}"
                 st.session_state.message_timestamp = time.time()
-                # send_telegram_alert(f"{employee_name} checked out at {current_time} and spent {total_hours} hours today")
-                # st.rerun()
+                send_telegram_alert(f"{employee_name} checked out at {current_time} and spent {total_hours} hours today")
+                st.rerun()
         else:
             st.session_state.status_message = "⚠️ No check-in record found for today."
             st.session_state.message_timestamp = time.time()
@@ -249,8 +248,8 @@ with col3:
                 sheet.update_cell(row_index, 5, current_time)
                 st.session_state.status_message = f"✅ Break started at {current_time}"
                 st.session_state.message_timestamp = time.time()
-                # send_telegram_alert(f"{employee_name} started break at {current_time}")
-                # st.rerun()
+                send_telegram_alert(f"{employee_name} started break at {current_time}")
+                st.rerun()
         else:
             st.session_state.status_message = "⚠️ No check-in record found for today."
             st.session_state.message_timestamp = time.time()
@@ -282,8 +281,8 @@ with col4:
                     sheet.update_cell(row_index, 6, current_time)
                     st.session_state.status_message = f"✅ Break ended at {current_time}"
                     st.session_state.message_timestamp = time.time()
-                    # send_telegram_alert(f"{employee_name} finished break at {current_time}")
-                    # st.rerun()
+                    send_telegram_alert(f"{employee_name} finished break at {current_time}")
+                    st.rerun()
         else:
             st.session_state.status_message = "⚠️ No check-in record found for today."
             st.session_state.message_timestamp = time.time()
