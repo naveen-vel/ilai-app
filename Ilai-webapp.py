@@ -130,11 +130,12 @@ if st.button("Sign In"):
             st.success(f"Signed in successfully at {sign_in_time}")
 
             # Reset the session state for inputs before rerun
+            st.rerun()
             st.session_state.name_input = ""  # Reset session state for name
             st.session_state.id_input = ""    # Reset session state for ID
 
             # Trigger a rerun
-            st.rerun()
+            
 
         except Exception as e:
             st.error(f"Failed to save to Google Sheets: {e}")
@@ -150,11 +151,12 @@ if st.button("Sign Out"):
             st.success(f"Signed out successfully at {sign_out_time}")
             
             # Reset the session state for inputs before rerun
+            st.rerun()
             st.session_state.name_input = ""  # Reset session state for name
             st.session_state.id_input = ""    # Reset session state for ID
             
             # Trigger a rerun
-            st.rerun()
+            
 
         except Exception as e:
             st.error(f"Failed to save to Google Sheets: {e}")
