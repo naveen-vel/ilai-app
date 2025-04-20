@@ -122,27 +122,24 @@ employee_name = st.text_input("Enter your name", value=st.session_state.name_inp
 employee_id = st.text_input("Enter your ID", value=st.session_state.id_input, key="id_input")
 
 # Sign-In Logic
-if "signin" not in st.session_state:
-    if st.button("Sign In"):
-        st.session_state.signin = True
-        if employee_name and employee_id:
-            sign_in_time = datetime.now(timezone).strftime("%I:%M %p, %b %d, %Y")
-            try:
-                sheet.append_row([employee_name, employee_id, sign_in_time, "Sign In"])
-                
-                if st.session_state.signin:
-                    st.success(f"Signed in successfully at {sign_in_time}")
-                    # Reset the session state for inputs before rerun
-                    st.session_state.name_input = ""  # Reset session state for name
-                    st.session_state.id_input = ""    # Reset session state for ID
-                    
-                    # Trigger a rerun
-                    st.rerun()
+if st.button("Sign In"):
+    if employee_name and employee_id:
+        sign_in_time = datetime.now(timezone).strftime("%I:%M %p, %b %d, %Y")
+        try:
+            sheet.append_row([employee_name, employee_id, sign_in_time, "Sign In"])
+            st.success(f"Signed in successfully at {sign_in_time}")
 
-            except Exception as e:
-                st.error(f"Failed to save to Google Sheets: {e}")
-        else:
-            st.error("Please enter both your name and ID.")
+            # Reset the session state for inputs before rerun
+            st.session_state.name_input = ""  # Reset session state for name
+            st.session_state.id_input = ""    # Reset session state for ID
+
+            # Trigger a rerun
+            st.rerun()
+
+        except Exception as e:
+            st.error(f"Failed to save to Google Sheets: {e}")
+    else:
+        st.error("Please enter both your name and ID.")
 
 # Sign-Out Logic
 if st.button("Sign Out"):
