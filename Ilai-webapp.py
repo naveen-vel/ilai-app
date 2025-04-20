@@ -74,14 +74,12 @@ if st.session_state.credentials is None:
 
 # After successful authentication, check if the app should show the 'Authenticated with Google' message
 if "show_app" not in st.session_state:
+    st.success("Authenticated with Google!")
     if st.button("Continue to App"):
         st.session_state.show_app = True
         st.rerun()
     st.stop()
 
-# If the app has moved past authentication, you can show the authenticated message
-if st.session_state.show_app == False:
-    st.success("Authenticated with Google!")
 
 # Credentials are available, so proceed with the app logic
 creds = Credentials(
