@@ -118,6 +118,7 @@ else:
                 # Clear fields after successful sign-in
                 st.session_state.name_input = ""
                 st.session_state.id_input = ""
+                st.rerun()
                 # No need for rerun, we just clear and update the UI
             except Exception as e:
                 st.error(f"Failed to save to Google Sheets: {e}")
@@ -133,6 +134,7 @@ else:
                 # Clear fields after successful sign-out
                 st.session_state.name_input = ""
                 st.session_state.id_input = ""
+                st.rerun()
                 # No need for rerun, we just clear and update the UI
             except Exception as e:
                 st.error(f"Failed to save to Google Sheets: {e}")
