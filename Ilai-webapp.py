@@ -3,7 +3,15 @@ from google.oauth2.credentials import Credentials
 from google.auth.transport.requests import Request
 import streamlit as st
 import gspread
+import pytz
 from datetime import datetime
+
+# Set your local timezone (e.g., 'Asia/Kolkata' or 'Europe/Berlin')
+timezone = pytz.timezone('Europe/Berlin')  # Change this to your desired timezone
+
+# Get current time with the timezone
+# localized_time = datetime.now(timezone)
+
 
 # OAuth scopes and redirect URL
 SCOPES = ["https://www.googleapis.com/auth/drive", "https://www.googleapis.com/auth/spreadsheets"]
@@ -116,7 +124,7 @@ employee_id = st.text_input("Enter your ID", value=st.session_state.id_input, ke
 # Sign-In Logic
 if st.button("Sign In"):
     if employee_name and employee_id:
-        sign_in_time = datetime.now().strftime("%I:%M %p, %b %d, %Y")
+        sign_in_time = datetime.now(timezone).strftime("%I:%M %p, %b %d, %Y")
         try:
             sheet.append_row([employee_name, employee_id, sign_in_time, "Sign In"])
             st.success(f"Signed in successfully at {sign_in_time}")
@@ -136,7 +144,7 @@ if st.button("Sign In"):
 # Sign-Out Logic
 if st.button("Sign Out"):
     if employee_name and employee_id:
-        sign_out_time = datetime.now().strftime("%I:%M %p, %b %d, %Y")
+        sign_out_time = datetime.now(timezone).strftime("%I:%M %p, %b %d, %Y")
         try:
             sheet.append_row([employee_name, employee_id, sign_out_time, "Sign Out"])
             st.success(f"Signed out successfully at {sign_out_time}")
