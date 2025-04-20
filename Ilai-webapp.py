@@ -32,6 +32,7 @@ REDIRECT_URI = "https://ilai-restaurant.streamlit.app"  # For deployment on Stre
 client_id = st.secrets["google_oauth_virgil"]["client_id"]
 client_secret = st.secrets["google_oauth_virgil"]["client_secret"]
 
+st.set_page_config(page_title="Employee Sign-In", layout="wide")
 st.title("Employee Sign-In with Google Authentication")
 
 if "credentials" not in st.session_state:
@@ -140,7 +141,7 @@ employee_list = ["",
 if "name_input" not in st.session_state:
     st.session_state.name_input = employee_list[0]
 
-employee_name = st.selectbox("Select your name", employee_list, index=0, key="name_input")
+employee_name = st.selectbox("Select your name", employee_list, key="name_input")
 
 records = sheet.get_all_records()
 today_str = datetime.now().strftime("%Y-%m-%d")
@@ -152,7 +153,7 @@ current_time = now.strftime("%H:%M:%S")
 current_week = now.isocalendar()[1]
 
 st.markdown("### Actions")
-col1, col2, col3, col4 = st.columns(4)
+col1, col2, col3, col4 = st.columns([1, 1, 1, 1])
 
 
 with col1:
