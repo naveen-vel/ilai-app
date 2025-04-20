@@ -143,6 +143,9 @@ if "name_input" not in st.session_state:
 
 employee_name = st.selectbox("Select your name", employee_list, key="name_input")
 
+if not employee_name:
+    st.stop()
+
 records = sheet.get_all_records()
 today_str = datetime.now().strftime("%Y-%m-%d")
 latest_entry = next((row for row in reversed(records) if row['Name'] == employee_name and row['Date'] == today_str), None)
@@ -156,17 +159,18 @@ st.markdown("### Actions")
 col1, col2 = st.columns(2)
 col3, col4 = st.columns(2)
 
-message = ""
+if "status_message" not in st.session_state:
+    st.session_state.status_message = ""
 
 with col1:
     if st.button("Check In"):
         if latest_entry is None:
             sheet.append_row([employee_name, current_date, current_time, '', '', '', '', current_week])
-            message = f"✅ Checked in at {current_time}"
-            send_telegram_alert(f"{employee_name} checked in at {current_time}")
+            st.session_state.status_message = f"✅ Checked in at {current_time}"
+            # send_telegram_alert(f"{employee_name} checked in at {current_time}")
             st.rerun()
         else:
-            message = "⚠️ You have already checked in today."
+            st.session_state.status_message = "⚠️ You have already checked in today."
 
 with col2:
     if st.button("Check Out"):
@@ -185,11 +189,11 @@ with col2:
             total_hours = round(total_duration / 3600, 2)
 
             sheet.update_cell(row_index, 7, total_hours)
-            message = f"✅ Checked out at {current_time}. Total hours: {total_hours}"
-            send_telegram_alert(f"{employee_name} checked out at {current_time} and spent {total_hours} hours today")
+            st.session_state.status_message = f"✅ Checked out at {current_time}. Total hours: {total_hours}"
+            # send_telegram_alert(f"{employee_name} checked out at {current_time} and spent {total_hours} hours today")
             st.rerun()
         else:
-            message = "⚠️ No check-in record found for today."
+            st.session_state.status_message = "⚠️ No check-in record found for today."
 
 with col3:
     if st.button("Break Start"):
@@ -199,19 +203,21 @@ with col3:
             else:
                 row_index = records.index(latest_entry) + 2
                 sheet.update_cell(row_index, 5, current_time)
-                message = f"✅ Break started at {current_time}"
-                send_telegram_alert(f"{employee_name} started break at {current_time}")
+                st.session_state.status_message = f"✅ Break started at {current_time}"
+                # send_telegram_alert(f"{employee_name} started break at {current_time}")
                 st.rerun()
         else:
-            message = "⚠️ No check-in record found for today."
+            st.session_state.status_message = "⚠️ No check-in record found for today."
 
 with col4:
     if st.button("Break Finish"):
         if latest_entry:
-            if not latest_entry['Break Start']:
-                st.warning("Break has not been started.")
+            if latest_entry['Check Out']:
+                st.session_state.status_message = "⚠️ Cannot end break after checking out."
+            elif not latest_entry['Break Start']:
+                st.session_state.status_message = "⚠️ Break not started yet."
             elif latest_entry['Break End']:
-                st.warning("Break already ended.")
+                st.session_state.status_message = "⚠️ Break already ended."
             else:
                 break_start_time = datetime.strptime(latest_entry['Break Start'], "%H:%M:%S")
                 if datetime.strptime(current_time, "%H:%M:%S") < break_start_time:
@@ -219,15 +225,15 @@ with col4:
                 else:
                     row_index = records.index(latest_entry) + 2
                     sheet.update_cell(row_index, 6, current_time)
-                    message = f"✅ Break ended at {current_time}"
-                    send_telegram_alert(f"{employee_name} finished break at {current_time}")
+                    st.session_state.status_message = f"✅ Break ended at {current_time}"
+                    # send_telegram_alert(f"{employee_name} finished break at {current_time}")
                     st.rerun()
         else:
-            message = "⚠️ No check-in record found for today."
+            st.session_state.status_message = "⚠️ No check-in record found for today."
 
-if message:
+if st.session_state.status_message:
     st.markdown("---")
-    st.markdown(f"### Status\n{message}")
+    st.markdown(f"### Status\n{st.session_state.status_message}")
 
 # # Sign-In Logic
 # if st.button("Sign In"):
