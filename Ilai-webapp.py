@@ -29,8 +29,8 @@ SCOPES = ["https://www.googleapis.com/auth/drive", "https://www.googleapis.com/a
 REDIRECT_URI = "https://ilai-restaurant.streamlit.app"  # For deployment on Streamlit Cloud
 
 # Load client ID and secret from Streamlit secrets
-client_id = st.secrets["google_oauth_virgil"]["client_id"]
-client_secret = st.secrets["google_oauth_virgil"]["client_secret"]
+client_id = st.secrets["google_oauth_ilai"]["client_id"]
+client_secret = st.secrets["google_oauth_ilai"]["client_secret"]
 
 st.set_page_config(page_title="Team Ilai", layout="centered")
 st.markdown("""
