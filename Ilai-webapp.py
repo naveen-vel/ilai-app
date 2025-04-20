@@ -32,7 +32,7 @@ REDIRECT_URI = "https://ilai-restaurant.streamlit.app"  # For deployment on Stre
 client_id = st.secrets["google_oauth_virgil"]["client_id"]
 client_secret = st.secrets["google_oauth_virgil"]["client_secret"]
 
-st.set_page_config(page_title="Team Ilai", layout="wide")
+st.set_page_config(page_title="Team Ilai", layout="centered")
 st.title("Team Ilai Timesheet Management")
 
 if "credentials" not in st.session_state:
@@ -153,7 +153,8 @@ current_time = now.strftime("%H:%M:%S")
 current_week = now.isocalendar()[1]
 
 st.markdown("### Actions")
-col1, col2, col3, col4 = st.columns([1, 1, 1, 1])
+col1, col2 = st.columns(2)
+col3, col4 = st.columns(2)
 
 
 with col1:
@@ -161,6 +162,7 @@ with col1:
         if latest_entry is None:
             sheet.append_row([employee_name, current_date, current_time, '', '', '', '', current_week])
             st.success(f"Checked in at {current_time}")
+            send_telegram_alert(f"{employee_name} checked in at {current_time}")
             st.rerun()
         else:
             st.warning("You have already checked in today.")
@@ -183,6 +185,7 @@ with col2:
 
             sheet.update_cell(row_index, 7, total_hours)
             st.success(f"Checked out at {current_time}. Total hours: {total_hours}")
+            send_telegram_alert(f"{employee_name} checked out at {current_time} and spent {total_hours} hours today")
             st.rerun()
         else:
             st.warning("No check-in record found for today.")
@@ -196,6 +199,7 @@ with col3:
                 row_index = records.index(latest_entry) + 2
                 sheet.update_cell(row_index, 5, current_time)
                 st.success(f"Break started at {current_time}")
+                send_telegram_alert(f"{employee_name} started break at {current_time}")
                 st.rerun()
         else:
             st.warning("No check-in record found for today.")
@@ -215,6 +219,7 @@ with col4:
                     row_index = records.index(latest_entry) + 2
                     sheet.update_cell(row_index, 6, current_time)
                     st.success(f"Break ended at {current_time}")
+                    send_telegram_alert(f"{employee_name} finished break at {current_time}")
                     st.rerun()
         else:
             st.warning("No check-in record found for today.")
