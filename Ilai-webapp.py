@@ -32,8 +32,8 @@ REDIRECT_URI = "https://ilai-restaurant.streamlit.app"  # For deployment on Stre
 client_id = st.secrets["google_oauth_virgil"]["client_id"]
 client_secret = st.secrets["google_oauth_virgil"]["client_secret"]
 
-st.set_page_config(page_title="Employee Sign-In", layout="wide")
-st.title("Employee Sign-In with Google Authentication")
+st.set_page_config(page_title="Team Ilai", layout="wide")
+st.title("Team Ilai Timesheet Management")
 
 if "credentials" not in st.session_state:
     st.session_state.credentials = None
@@ -190,20 +190,32 @@ with col2:
 with col3:
     if st.button("Break Start"):
         if latest_entry:
-            row_index = records.index(latest_entry) + 2
-            sheet.update_cell(row_index, 5, current_time)
-            st.success(f"Break started at {current_time}")
-            st.rerun()
+            if latest_entry['Break Start']:
+                st.warning("Break already started.")
+            else:
+                row_index = records.index(latest_entry) + 2
+                sheet.update_cell(row_index, 5, current_time)
+                st.success(f"Break started at {current_time}")
+                st.rerun()
         else:
             st.warning("No check-in record found for today.")
 
 with col4:
     if st.button("Break Finish"):
         if latest_entry:
-            row_index = records.index(latest_entry) + 2
-            sheet.update_cell(row_index, 6, current_time)
-            st.success(f"Break ended at {current_time}")
-            st.rerun()
+            if not latest_entry['Break Start']:
+                st.warning("Break has not been started.")
+            elif latest_entry['Break End']:
+                st.warning("Break already ended.")
+            else:
+                break_start_time = datetime.strptime(latest_entry['Break Start'], "%H:%M:%S")
+                if datetime.strptime(current_time, "%H:%M:%S") < break_start_time:
+                    st.warning("Break end cannot be earlier than break start.")
+                else:
+                    row_index = records.index(latest_entry) + 2
+                    sheet.update_cell(row_index, 6, current_time)
+                    st.success(f"Break ended at {current_time}")
+                    st.rerun()
         else:
             st.warning("No check-in record found for today.")
 
