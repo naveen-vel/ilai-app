@@ -121,6 +121,9 @@ except gspread.SpreadsheetNotFound:
 employee_name = st.text_input("Enter your name", value=" ", key="name_input")
 employee_id = st.text_input("Enter your ID", value=" ", key="id_input")
 
+st.session_state.setdefault("name_input","")
+st.session_state.setdefault("id_input","")
+
 # Sign-In Logic
 if st.button("Sign In"):
     if employee_name and employee_id:
