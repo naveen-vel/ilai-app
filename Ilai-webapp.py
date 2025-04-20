@@ -128,18 +128,20 @@ except gspread.SpreadsheetNotFound:
 # if "id_input" not in st.session_state:
 #     st.session_state.id_input = ""
 
-employee_name = st.text_input("Enter your name", value=" ", key="name_input")
-employee_id = st.text_input("Enter your ID", value=" ", key="id_input")
+employee_list = ["",
+                 "Naveen Ballapuri",
+                 "Sai Harshita Bandhar Suresh",
+                 "Urekha Nuthapalati",
+                 "Varaha Shivakumar"]
 
-st.session_state.setdefault("name_input"," ")
-st.session_state.setdefault("id_input"," ")
+employee_name = st.selectbox("Select your name", employee_list, index=0, key="name_input")
 
 # Sign-In Logic
 if st.button("Sign In"):
-    if employee_name and employee_id:
+    if employee_name:
         sign_in_time = datetime.now(timezone).strftime("%I:%M %p, %b %d, %Y")
         try:
-            sheet.append_row([employee_name, employee_id, sign_in_time, "Sign In"])
+            sheet.append_row([employee_name, sign_in_time, "Sign In"])
             st.success(f"Signed in successfully at {sign_in_time}")
             send_telegram_alert(f"{employee_name} signed in at {sign_in_time}")
             # Reset the session state for inputs before rerun
@@ -157,10 +159,10 @@ if st.button("Sign In"):
 
 # Sign-Out Logic
 if st.button("Sign Out"):
-    if employee_name and employee_id:
+    if employee_name:
         sign_out_time = datetime.now(timezone).strftime("%I:%M %p, %b %d, %Y")
         try:
-            sheet.append_row([employee_name, employee_id, sign_out_time, "Sign Out"])
+            sheet.append_row([employee_name, sign_out_time, "Sign Out"])
             st.success(f"Signed out successfully at {sign_out_time}")
             send_telegram_alert(f"{employee_name} signed out at {sign_out_time}")
             # Reset the session state for inputs before rerun
