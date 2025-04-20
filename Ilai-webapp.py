@@ -145,13 +145,8 @@ employee_list = ["",
 if "name_input" not in st.session_state:
     st.session_state.name_input = employee_list[0]
 
-
 st.markdown("---")
-col_name, col_clock = st.columns([3, 1])
-with col_name:
-    employee_name = st.selectbox("👤 Select your name", employee_list, index=0, key="name_input")
-with col_clock:
-    st.markdown(f"### 🕒 {datetime.now().strftime('%H:%M:%S')}")
+employee_name = st.selectbox("👤 Select your name", employee_list, index=0, key="name_input")
 
 if not employee_name:
     st.stop()
