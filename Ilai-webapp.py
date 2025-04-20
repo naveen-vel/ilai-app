@@ -28,13 +28,8 @@ SCOPES = ["https://www.googleapis.com/auth/drive", "https://www.googleapis.com/a
 REDIRECT_URI = "https://ilai-restaurant.streamlit.app"  # For deployment on Streamlit Cloud
 
 # Load client ID and secret from Streamlit secrets
-# client_id = st.secrets["google_oauth"]["client_id"]
-# client_secret = st.secrets["google_oauth"]["client_secret"]
-
-# for testing, using Virgil ID
-secrets_virgil = toml.load(".streamlit/secrets_virgil.toml")
-client_id = secrets_virgil["google_oauth"]["client_id"]
-client_secret = secrets_virgil["google_oauth"]["client_secret"]
+client_id = st.secrets["google_oauth_virgil"]["client_id"]
+client_secret = st.secrets["google_oauth_virgil"]["client_secret"]
 
 st.title("Employee Sign-In with Google Authentication")
 
