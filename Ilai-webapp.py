@@ -20,6 +20,7 @@ if "credentials" not in st.session_state:
 
 query_params = st.query_params
 
+# Authentication flow
 if st.session_state.credentials is None:
     if "code" in query_params:
         try:
@@ -48,9 +49,9 @@ if st.session_state.credentials is None:
                 "scopes": credentials.scopes,
             }
             st.query_params.clear()
-            st.rerun()  # Replacing experimental_rerun with st.rerun
-        except Exception as e:
-            st.error(f"Authentication failed. Please try again. {str(e)}")
+            st.rerun()
+        except Exception:
+            st.error("Authentication failed. Please try again.")
             st.stop()
     else:
         flow = Flow.from_client_config(
@@ -70,73 +71,86 @@ if st.session_state.credentials is None:
         st.write("Click below to sign in with Google:")
         st.write(f"[Sign in with Google]({auth_url})")
         st.stop()
-else:
-    creds = Credentials(
-        token=st.session_state.credentials["token"],
-        refresh_token=st.session_state.credentials["refresh_token"],
-        token_uri=st.session_state.credentials["token_uri"],
-        client_id=st.session_state.credentials["client_id"],
-        client_secret=st.session_state.credentials["client_secret"],
-        scopes=st.session_state.credentials["scopes"],
-    )
-    if creds.expired and creds.refresh_token:
-        creds.refresh(Request())
 
+# After successful authentication, check if the app should show the 'Authenticated with Google' message
+if "show_app" not in st.session_state:
+    if st.button("Continue to App"):
+        st.session_state.show_app = True
+        st.rerun()
+    st.stop()
+
+# If the app has moved past authentication, you can show the authenticated message
+if st.session_state.show_app:
     st.success("Authenticated with Google!")
 
-    if "show_app" not in st.session_state:
-        if st.button("Continue to App"):
-            st.session_state.show_app = True
-            st.rerun()  # Replacing experimental_rerun with st.rerun
-        st.stop()
+# Credentials are available, so proceed with the app logic
+creds = Credentials(
+    token=st.session_state.credentials["token"],
+    refresh_token=st.session_state.credentials["refresh_token"],
+    token_uri=st.session_state.credentials["token_uri"],
+    client_id=st.session_state.credentials["client_id"],
+    client_secret=st.session_state.credentials["client_secret"],
+    scopes=st.session_state.credentials["scopes"],
+)
 
-    client = gspread.authorize(creds)
+if creds.expired and creds.refresh_token:
+    creds.refresh(Request())
 
-    try:
-        sheet = client.open("Employee Sign-In").sheet1
-    except gspread.SpreadsheetNotFound:
-        st.warning("Spreadsheet not found. Creating a new one...")
-        spreadsheet = client.create("Employee Sign-In")
-        spreadsheet.share("your-email@example.com", perm_type="user", role="writer")
-        sheet = spreadsheet.sheet1
-        st.success("New spreadsheet created successfully!")
+client = gspread.authorize(creds)
 
-    if "name_input" not in st.session_state:
-        st.session_state.name_input = ""
-    if "id_input" not in st.session_state:
-        st.session_state.id_input = ""
+try:
+    sheet = client.open("Employee Sign-In").sheet1
+except gspread.SpreadsheetNotFound:
+    st.warning("Spreadsheet not found. Creating a new one...")
+    spreadsheet = client.create("Employee Sign-In")
+    spreadsheet.share("your-email@example.com", perm_type="user", role="writer")
+    sheet = spreadsheet.sheet1
+    st.success("New spreadsheet created successfully!")
 
-    employee_name = st.text_input("Enter your name", value=st.session_state.name_input, key="name_input")
-    employee_id = st.text_input("Enter your ID", value=st.session_state.id_input, key="id_input")
+if "name_input" not in st.session_state:
+    st.session_state.name_input = ""
+if "id_input" not in st.session_state:
+    st.session_state.id_input = ""
 
-    if st.button("Sign In"):
-        if employee_name and employee_id:
-            sign_in_time = datetime.now().strftime("%I:%M %p, %b %d, %Y")
-            try:
-                sheet.append_row([employee_name, employee_id, sign_in_time, "Sign In"])
-                st.success(f"Signed in successfully at {sign_in_time}")
-                # Clear fields after successful sign-in
-                st.session_state.name_input = ""
-                st.session_state.id_input = ""
-                st.rerun()
-                # No need for rerun, we just clear and update the UI
-            except Exception as e:
-                st.error(f"Failed to save to Google Sheets: {e}")
-        else:
-            st.error("Please enter both your name and ID.")
+employee_name = st.text_input("Enter your name", value=st.session_state.name_input, key="name_input")
+employee_id = st.text_input("Enter your ID", value=st.session_state.id_input, key="id_input")
 
-    if st.button("Sign Out"):
-        if employee_name and employee_id:
-            sign_out_time = datetime.now().strftime("%I:%M %p, %b %d, %Y")
-            try:
-                sheet.append_row([employee_name, employee_id, sign_out_time, "Sign Out"])
-                st.success(f"Signed out successfully at {sign_out_time}")
-                # Clear fields after successful sign-out
-                st.session_state.name_input = ""
-                st.session_state.id_input = ""
-                st.rerun()
-                # No need for rerun, we just clear and update the UI
-            except Exception as e:
-                st.error(f"Failed to save to Google Sheets: {e}")
-        else:
-            st.error("Please enter both your name and ID.")
+# Sign-In Logic
+if st.button("Sign In"):
+    if employee_name and employee_id:
+        sign_in_time = datetime.now().strftime("%I:%M %p, %b %d, %Y")
+        try:
+            sheet.append_row([employee_name, employee_id, sign_in_time, "Sign In"])
+            st.success(f"Signed in successfully at {sign_in_time}")
+            
+            # Reset the session state for inputs before rerun
+            st.session_state.name_input = ""  # Reset session state for name
+            st.session_state.id_input = ""    # Reset session state for ID
+            
+            # Trigger a rerun
+            st.rerun()
+
+        except Exception as e:
+            st.error(f"Failed to save to Google Sheets: {e}")
+    else:
+        st.error("Please enter both your name and ID.")
+
+# Sign-Out Logic
+if st.button("Sign Out"):
+    if employee_name and employee_id:
+        sign_out_time = datetime.now().strftime("%I:%M %p, %b %d, %Y")
+        try:
+            sheet.append_row([employee_name, employee_id, sign_out_time, "Sign Out"])
+            st.success(f"Signed out successfully at {sign_out_time}")
+            
+            # Reset the session state for inputs before rerun
+            st.session_state.name_input = ""  # Reset session state for name
+            st.session_state.id_input = ""    # Reset session state for ID
+            
+            # Trigger a rerun
+            st.rerun()
+
+        except Exception as e:
+            st.error(f"Failed to save to Google Sheets: {e}")
+    else:
+        st.error("Please enter both your name and ID.")
