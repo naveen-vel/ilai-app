@@ -104,12 +104,12 @@ if "show_app" not in st.session_state:
         st.rerun()
     st.stop()
 
-if st.session_state.credentials["client_id"] != client_id:
-    # Client ID has changed — invalidate session
-    st.session_state.credentials = None
-    st.session_state.show_app = False
-    st.rerun()
-    
+# if st.session_state.credentials["client_id"] != client_id:
+#     # Client ID has changed — invalidate session
+#     st.session_state.credentials = None
+#     st.session_state.show_app = False
+#     st.rerun()
+
 # Credentials are available, so proceed with the app logic
 creds = Credentials(
     token=st.session_state.credentials["token"],
