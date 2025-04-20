@@ -6,7 +6,8 @@ import gspread
 import pytz
 from datetime import datetime
 import requests
-import toml
+import math
+from datetime import datetime, timedelta
 
 def send_telegram_alert(message):
     token = st.secrets["telegram"]["bot_token"]  # Access token from secrets.toml
@@ -114,19 +115,21 @@ if creds.expired and creds.refresh_token:
 
 client = gspread.authorize(creds)
 
-try:
-    sheet = client.open("Employee Sign-In").sheet1
-except gspread.SpreadsheetNotFound:
-    st.warning("Spreadsheet not found. Creating a new one...")
-    spreadsheet = client.create("Employee Sign-In")
-    spreadsheet.share("your-email@example.com", perm_type="user", role="writer")
-    sheet = spreadsheet.sheet1
-    st.success("New spreadsheet created successfully!")
+# create or open sheet for current month
+current_month = datetime.now().strftime("%B %Y")
+spreadsheet_name = "Employee Sign-In"
 
-# if "name_input" not in st.session_state:
-#     st.session_state.name_input = ""
-# if "id_input" not in st.session_state:
-#     st.session_state.id_input = ""
+try:
+    spreadsheet = client.open(spreadsheet_name)
+except gspread.SpreadsheetNotFound:
+    spreadsheet = client.create(spreadsheet_name)
+    spreadsheet.share("naveen.velmurugan@virgildynamics.com", perm_type="user", role="writer")
+
+try:
+    sheet = spreadsheet.worksheet(current_month)
+except gspread.WorksheetNotFound:
+    sheet = spreadsheet.add_worksheet(title=current_month, rows="1000", cols="10")
+    sheet.update("A1:H1", [["Name", "Date", "Check In", "Check Out", "Break Start", "Break End", "Hours Worked", "Week"]])
 
 employee_list = ["",
                  "Naveen Ballapuri",
@@ -134,46 +137,113 @@ employee_list = ["",
                  "Urekha Nuthapalati",
                  "Varaha Shivakumar"]
 
+if "name_input" not in st.session_state:
+    st.session_state.name_input = employee_list[0]
+
 employee_name = st.selectbox("Select your name", employee_list, index=0, key="name_input")
 
-# Sign-In Logic
-if st.button("Sign In"):
-    if employee_name:
-        sign_in_time = datetime.now(timezone).strftime("%I:%M %p, %b %d, %Y")
-        try:
-            sheet.append_row([employee_name, sign_in_time, "Sign In"])
-            st.success(f"Signed in successfully at {sign_in_time}")
-            send_telegram_alert(f"{employee_name} signed in at {sign_in_time}")
-            # Reset the session state for inputs before rerun
-            
-            # st.session_state.name_input = " "  # Reset session state for name
-            # st.session_state.id_input = " "    # Reset session state for ID
+records = sheet.get_all_records()
+today_str = datetime.now().strftime("%Y-%m-%d")
+latest_entry = next((row for row in reversed(records) if row['Name'] == employee_name and row['Date'] == today_str), None)
 
-            # Trigger a rerun
-            st.rerun()      
+now = datetime.now()
+current_date = now.strftime("%Y-%m-%d")
+current_time = now.strftime("%H:%M:%S")
+current_week = now.isocalendar()[1]
 
-        except Exception as e:
-            st.error(f"Failed to save to Google Sheets: {e}")
-    else:
-        st.error("Please enter both your name and ID.")
+st.markdown("### Actions")
+col1, col2, col3, col4 = st.columns(4)
 
-# Sign-Out Logic
-if st.button("Sign Out"):
-    if employee_name:
-        sign_out_time = datetime.now(timezone).strftime("%I:%M %p, %b %d, %Y")
-        try:
-            sheet.append_row([employee_name, sign_out_time, "Sign Out"])
-            st.success(f"Signed out successfully at {sign_out_time}")
-            send_telegram_alert(f"{employee_name} signed out at {sign_out_time}")
-            # Reset the session state for inputs before rerun
-            
-            # st.session_state.name_input = " "  # Reset session state for name
-            # st.session_state.id_input = " "    # Reset session state for ID
-            
-            # Trigger a rerun
+
+with col1:
+    if st.button("Check In"):
+        if latest_entry is None:
+            sheet.append_row([employee_name, current_date, current_time, '', '', '', '', current_week])
+            st.success(f"Checked in at {current_time}")
             st.rerun()
+        else:
+            st.warning("You have already checked in today.")
 
-        except Exception as e:
-            st.error(f"Failed to save to Google Sheets: {e}")
-    else:
-        st.error("Please enter both your name and ID.")
+with col2:
+    if st.button("Check Out"):
+        if latest_entry:
+            row_index = records.index(latest_entry) + 2
+            sheet.update_cell(row_index, 4, current_time)
+
+            checkin_time = datetime.strptime(latest_entry['Check In'], "%H:%M:%S")
+            checkout_time = datetime.strptime(current_time, "%H:%M:%S")
+
+            break_start = datetime.strptime(latest_entry['Break Start'], "%H:%M:%S") if latest_entry['Break Start'] else None
+            break_end = datetime.strptime(latest_entry['Break End'], "%H:%M:%S") if latest_entry['Break End'] else None
+
+            break_duration = (break_end - break_start).total_seconds() if break_start and break_end else 0
+            total_duration = (checkout_time - checkin_time).total_seconds() - break_duration
+            total_hours = round(total_duration / 3600, 2)
+
+            sheet.update_cell(row_index, 7, total_hours)
+            st.success(f"Checked out at {current_time}. Total hours: {total_hours}")
+            st.rerun()
+        else:
+            st.warning("No check-in record found for today.")
+
+with col3:
+    if st.button("Break Start"):
+        if latest_entry:
+            row_index = records.index(latest_entry) + 2
+            sheet.update_cell(row_index, 5, current_time)
+            st.success(f"Break started at {current_time}")
+            st.rerun()
+        else:
+            st.warning("No check-in record found for today.")
+
+with col4:
+    if st.button("Break Finish"):
+        if latest_entry:
+            row_index = records.index(latest_entry) + 2
+            sheet.update_cell(row_index, 6, current_time)
+            st.success(f"Break ended at {current_time}")
+            st.rerun()
+        else:
+            st.warning("No check-in record found for today.")
+
+# # Sign-In Logic
+# if st.button("Sign In"):
+#     if employee_name:
+#         sign_in_time = datetime.now(timezone).strftime("%I:%M %p, %b %d, %Y")
+#         try:
+#             sheet.append_row([employee_name, sign_in_time, "Sign In"])
+#             st.success(f"Signed in successfully at {sign_in_time}")
+#             send_telegram_alert(f"{employee_name} signed in at {sign_in_time}")
+#             # Reset the session state for inputs before rerun
+            
+#             # st.session_state.name_input = " "  # Reset session state for name
+#             # st.session_state.id_input = " "    # Reset session state for ID
+
+#             # Trigger a rerun
+#             st.rerun()      
+
+#         except Exception as e:
+#             st.error(f"Failed to save to Google Sheets: {e}")
+#     else:
+#         st.error("Please enter both your name and ID.")
+
+# # Sign-Out Logic
+# if st.button("Sign Out"):
+#     if employee_name:
+#         sign_out_time = datetime.now(timezone).strftime("%I:%M %p, %b %d, %Y")
+#         try:
+#             sheet.append_row([employee_name, sign_out_time, "Sign Out"])
+#             st.success(f"Signed out successfully at {sign_out_time}")
+#             send_telegram_alert(f"{employee_name} signed out at {sign_out_time}")
+#             # Reset the session state for inputs before rerun
+            
+#             # st.session_state.name_input = " "  # Reset session state for name
+#             # st.session_state.id_input = " "    # Reset session state for ID
+            
+#             # Trigger a rerun
+#             st.rerun()
+
+#         except Exception as e:
+#             st.error(f"Failed to save to Google Sheets: {e}")
+#     else:
+#         st.error("Please enter both your name and ID.")
