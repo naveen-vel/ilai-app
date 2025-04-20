@@ -5,6 +5,15 @@ import streamlit as st
 import gspread
 import pytz
 from datetime import datetime
+import requests
+
+def send_telegram_alert(message):
+    token = st.secrets["telegram"]["bot_token"]  # Access token from secrets.toml
+    chat_id = st.secrets["telegram"]["chat_id"]  # Access chat_id from secrets.toml
+    url = f"https://api.telegram.org/bot{token}/sendMessage"
+    payload = {"chat_id": chat_id, "text": message}
+    response = requests.post(url, data=payload)
+    return response.json()
 
 # Set your local timezone (e.g., 'Asia/Kolkata' or 'Europe/Berlin')
 timezone = pytz.timezone('Europe/Berlin')  # Change this to your desired timezone
@@ -131,7 +140,7 @@ if st.button("Sign In"):
         try:
             sheet.append_row([employee_name, employee_id, sign_in_time, "Sign In"])
             st.success(f"Signed in successfully at {sign_in_time}")
-
+            send_telegram_alert(f"{employee_name} signed in at {sign_in_time}")
             # Reset the session state for inputs before rerun
             
             # st.session_state.name_input = " "  # Reset session state for name
@@ -152,11 +161,11 @@ if st.button("Sign Out"):
         try:
             sheet.append_row([employee_name, employee_id, sign_out_time, "Sign Out"])
             st.success(f"Signed out successfully at {sign_out_time}")
-            
+            send_telegram_alert(f"{employee_name} signed out at {sign_out_time}")
             # Reset the session state for inputs before rerun
             
-            st.session_state.name_input = " "  # Reset session state for name
-            st.session_state.id_input = " "    # Reset session state for ID
+            # st.session_state.name_input = " "  # Reset session state for name
+            # st.session_state.id_input = " "    # Reset session state for ID
             
             # Trigger a rerun
             st.rerun()
