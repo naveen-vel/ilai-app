@@ -147,7 +147,7 @@ if "name_input" not in st.session_state:
 
 
 st.markdown("---")
-employee_name = st.selectbox("👤 Select your name", employee_list, index=0 key="name_input")
+employee_name = st.selectbox("👤 Select your name", employee_list, index=0, key="name_input")
 
 if not employee_name:
     st.stop()
