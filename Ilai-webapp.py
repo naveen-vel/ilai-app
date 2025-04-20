@@ -158,7 +158,7 @@ if not employee_name:
 
 records = sheet.get_all_records()
 today_str = datetime.now().strftime("%Y-%m-%d")
-latest_entry = next((row for row in reversed(records) if row['Name'] == employee_name and row['Date'] == today_str), None)
+latest_entry = next((row for row in reversed(records) if row['Name'] == employee_name and not row['Check Out']), None)
 
 now = datetime.now()
 current_date = now.strftime("%Y-%m-%d")
