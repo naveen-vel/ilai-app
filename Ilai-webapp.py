@@ -80,7 +80,7 @@ if "show_app" not in st.session_state:
     st.stop()
 
 # If the app has moved past authentication, you can show the authenticated message
-if st.session_state.show_app:
+if st.session_state.show_app == False:
     st.success("Authenticated with Google!")
 
 # Credentials are available, so proceed with the app logic
