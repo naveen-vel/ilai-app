@@ -147,7 +147,11 @@ if "name_input" not in st.session_state:
 
 
 st.markdown("---")
-employee_name = st.selectbox("👤 Select your name", employee_list, index=0, key="name_input")
+col_name, col_clock = st.columns([3, 1])
+with col_name:
+    employee_name = st.selectbox("👤 Select your name", employee_list, index=0, key="name_input")
+with col_clock:
+    st.markdown(f"### 🕒 {datetime.now().strftime('%H:%M:%S')}")
 
 if not employee_name:
     st.stop()
@@ -299,47 +303,3 @@ if st.session_state.status_message:
         st.session_state.status_message = ""
         st.session_state.message_timestamp = None
         # st.rerun()
-
-    
-
-# # Sign-In Logic
-# if st.button("Sign In"):
-#     if employee_name:
-#         sign_in_time = datetime.now(timezone).strftime("%I:%M %p, %b %d, %Y")
-#         try:
-#             sheet.append_row([employee_name, sign_in_time, "Sign In"])
-#             st.success(f"Signed in successfully at {sign_in_time}")
-#             send_telegram_alert(f"{employee_name} signed in at {sign_in_time}")
-#             # Reset the session state for inputs before rerun
-            
-#             # st.session_state.name_input = " "  # Reset session state for name
-#             # st.session_state.id_input = " "    # Reset session state for ID
-
-#             # Trigger a rerun
-#             st.rerun()      
-
-#         except Exception as e:
-#             st.error(f"Failed to save to Google Sheets: {e}")
-#     else:
-#         st.error("Please enter both your name and ID.")
-
-# # Sign-Out Logic
-# if st.button("Sign Out"):
-#     if employee_name:
-#         sign_out_time = datetime.now(timezone).strftime("%I:%M %p, %b %d, %Y")
-#         try:
-#             sheet.append_row([employee_name, sign_out_time, "Sign Out"])
-#             st.success(f"Signed out successfully at {sign_out_time}")
-#             send_telegram_alert(f"{employee_name} signed out at {sign_out_time}")
-#             # Reset the session state for inputs before rerun
-            
-#             # st.session_state.name_input = " "  # Reset session state for name
-#             # st.session_state.id_input = " "    # Reset session state for ID
-            
-#             # Trigger a rerun
-#             st.rerun()
-
-#         except Exception as e:
-#             st.error(f"Failed to save to Google Sheets: {e}")
-#     else:
-#         st.error("Please enter both your name and ID.")
