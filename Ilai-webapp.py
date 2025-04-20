@@ -42,7 +42,7 @@ st.markdown("""
 if "credentials" not in st.session_state:
     st.session_state.credentials = None
 
-query_params = st.query_params()  # ✅ Correct way to access query parameters
+query_params = st.query_params  # ✅ Correct way to access query parameters
 
 # Authentication flow
 if st.session_state.credentials is None:
@@ -72,7 +72,7 @@ if st.session_state.credentials is None:
                 "client_secret": credentials.client_secret,
                 "scopes": credentials.scopes,
             }
-            st.experimental_set_query_params()  # This clears the query params
+            st.query_params.clear()  # This clears the query params
             st.rerun()
         except Exception:
             st.error("Authentication failed. Please try again.")
