@@ -42,7 +42,7 @@ st.markdown("""
 if "credentials" not in st.session_state:
     st.session_state.credentials = None
 
-query_params = st.experimental_get_query_params()  # ✅ Correct way to access query parameters
+query_params = st.query_params()  # ✅ Correct way to access query parameters
 
 # Authentication flow
 if st.session_state.credentials is None:
