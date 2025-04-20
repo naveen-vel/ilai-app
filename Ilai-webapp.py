@@ -32,6 +32,12 @@ REDIRECT_URI = "https://ilai-restaurant.streamlit.app"  # For deployment on Stre
 client_id = st.secrets["google_oauth_ilai"]["client_id"]
 client_secret = st.secrets["google_oauth_ilai"]["client_secret"]
 
+if st.session_state.credentials["client_id"] != client_id:
+    # Client ID has changed — invalidate session
+    st.session_state.credentials = None
+    st.session_state.show_app = False
+    st.rerun()
+
 st.set_page_config(page_title="Team Ilai", layout="centered")
 st.markdown("""
     <h1 style='text-align: center; color: #4A4A4A;'>👩‍🍳 Team Ilai </h1>
