@@ -147,7 +147,7 @@ if "name_input" not in st.session_state:
 
 
 st.markdown("---")
-employee_name = st.selectbox("👤 Select your name", employee_list, key="name_input")
+employee_name = st.selectbox("👤 Select your name", employee_list, index=0 key="name_input")
 
 if not employee_name:
     st.stop()
@@ -277,7 +277,7 @@ with col4:
                 if datetime.strptime(current_time, "%H:%M:%S") < break_start_time:
                     st.session_state.status_message = "⚠️ Break end time must be after break start time."
                     st.session_state.message_timestamp = time.time()
-                    st.rerun()
+                    # st.rerun()
                 else:
                     row_index = records.index(latest_entry) + 2
                     sheet.update_cell(row_index, 6, current_time)
@@ -294,7 +294,7 @@ if st.session_state.status_message:
     if st.session_state.message_timestamp and time.time() - st.session_state.message_timestamp < 10:
         st.markdown("---")
         st.success(st.session_state.status_message)
-        st.rerun()
+        # st.rerun()
     else:
         st.session_state.status_message = ""
         st.session_state.message_timestamp = None
