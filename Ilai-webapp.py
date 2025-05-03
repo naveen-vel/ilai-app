@@ -126,8 +126,13 @@ if creds.expired and creds.refresh_token:
 client = gspread.authorize(creds)
 
 # create or open sheet for current month
-current_month = datetime.now(timezone).strftime("%B %Y")
+# ✅ Define a single timezone-aware datetime object
+now = datetime.now(timezone)
+
+# ✅ Use it consistently throughout the app
+current_month = now.strftime("%B %Y")
 spreadsheet_name = "Employee Sign-In"
+
 
 try:
     spreadsheet = client.open(spreadsheet_name)
@@ -164,13 +169,12 @@ if not employee_name:
     st.stop()
 
 records = sheet.get_all_records()
-today_str = datetime.now(timezone).strftime("%Y-%m-%d")
-latest_entry = next((row for row in reversed(records) if row['Name'] == employee_name and not row['Check Out']), None)
-
-now = datetime.now(timezone)
+today_str = now.strftime("%Y-%m-%d")
 current_date = now.strftime("%Y-%m-%d")
 current_time = now.strftime("%H:%M:%S")
 current_week = now.isocalendar()[1]
+
+latest_entry = next((row for row in reversed(records) if row['Name'] == employee_name and not row['Check Out']), None)
 
 st.markdown("---")
 st.markdown("<h3 style='color: #4a90e2;'>⏱️ Actions</h3>", unsafe_allow_html=True)
