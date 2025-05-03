@@ -142,10 +142,13 @@ except gspread.WorksheetNotFound:
     sheet.update("A1:H1", [["Name", "Date", "Check In", "Check Out", "Break Start", "Break End", "Hours Worked", "Week"]])
 
 employee_list = ["",
+                 "Likith Devaraju",
                  "Naveen Ballapuri",
                  "Sai Harshita Bandhar Suresh",
+                 "Saivara Prasad Gottipati",
                  "Urekha Nuthapalati",
-                 "Varaha Shivakumar"]
+                 "Ajay",
+                 "Karthik"]
 
 if "name_input" not in st.session_state:
     st.session_state.name_input = employee_list[0]
