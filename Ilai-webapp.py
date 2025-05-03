@@ -150,6 +150,10 @@ employee_list = ["",
                  "Ajay",
                  "Karthik"]
 
+# Reset if the selected name is not in the updated list
+if st.session_state.get("name_input") not in employee_list:
+    st.session_state.name_input = employee_list[0]
+
 if "name_input" not in st.session_state:
     st.session_state.name_input = employee_list[0]
 
