@@ -209,14 +209,20 @@ with col2:
                 sheet.update_cell(row_index, 4, current_time)
                 sheet.update_cell(row_index, 6, current_time)
 
-                checkin_time = datetime.strptime(latest_entry['Check In'], "%H:%M:%S")
-                checkout_time = datetime.strptime(current_time, "%H:%M:%S")
+                checkin_dt = datetime.combine(now.date(), datetime.strptime(latest_entry['Check In'], "%H:%M:%S").time())
+                checkout_dt = now
 
-                break_start = datetime.strptime(latest_entry['Break Start'], "%H:%M:%S") if latest_entry['Break Start'] else None
-                break_end = datetime.strptime(latest_entry['Break End'], "%H:%M:%S") if latest_entry['Break End'] else None
+                if checkout_dt < checkin_dt:
+                    checkout_dt += timedelta(days=1)
 
-                break_duration = (break_end - break_start).total_seconds() if break_start and break_end else 0
-                total_duration = (checkout_time - checkin_time).total_seconds() - break_duration
+                break_start_dt = datetime.combine(now.date(), datetime.strptime(latest_entry['Break Start'], "%H:%M:%S").time()) if latest_entry['Break Start'] else None
+                break_end_dt = now
+
+                if break_start_dt and break_end_dt < break_start_dt:
+                    break_end_dt += timedelta(days=1)
+
+                break_duration = (break_end_dt - break_start_dt).total_seconds() if break_start_dt and break_end_dt else 0
+                total_duration = (checkout_dt- checkin_dt).total_seconds() - break_duration
                 total_hours = round(total_duration / 3600, 2)
 
                 sheet.update_cell(row_index, 7, total_hours)
@@ -228,14 +234,20 @@ with col2:
                 row_index = records.index(latest_entry) + 2
                 sheet.update_cell(row_index, 4, current_time)
 
-                checkin_time = datetime.strptime(latest_entry['Check In'], "%H:%M:%S")
-                checkout_time = datetime.strptime(current_time, "%H:%M:%S")
+                checkin_dt = datetime.combine(now.date(), datetime.strptime(latest_entry['Check In'], "%H:%M:%S").time())
+                checkout_dt = now
 
-                break_start = datetime.strptime(latest_entry['Break Start'], "%H:%M:%S") if latest_entry['Break Start'] else None
-                break_end = datetime.strptime(latest_entry['Break End'], "%H:%M:%S") if latest_entry['Break End'] else None
+                if checkout_dt < checkin_dt:
+                    checkout_dt += timedelta(days=1)
 
-                break_duration = (break_end - break_start).total_seconds() if break_start and break_end else 0
-                total_duration = (checkout_time - checkin_time).total_seconds() - break_duration
+                break_start_dt = datetime.combine(now.date(), datetime.strptime(latest_entry['Break Start'], "%H:%M:%S").time()) if latest_entry['Break Start'] else None
+                break_end_dt = datetime.combine(now.date(), datetime.strptime(latest_entry['Break End'], "%H:%M:%S").time()) if latest_entry['Break End'] else None
+
+                if break_start_dt and break_end_dt and break_end_dt < break_start_dt:
+                    break_end_dt += timedelta(days=1)
+
+                break_duration = (break_end_dt - break_start_dt).total_seconds() if break_start_dt and break_end_dt else 0
+                total_duration = (checkout_dt - checkin_dt).total_seconds() - break_duration
                 total_hours = round(total_duration / 3600, 2)
 
                 sheet.update_cell(row_index, 7, total_hours)
