@@ -138,7 +138,7 @@ try:
     spreadsheet = client.open(spreadsheet_name)
 except gspread.SpreadsheetNotFound:
     spreadsheet = client.create(spreadsheet_name)
-    spreadsheet.share("naveen.velmurugan@virgildynamics.com", perm_type="user", role="writer")
+    spreadsheet.share("ilaigastronomy@gmail.com", perm_type="user", role="writer")
 
 try:
     sheet = spreadsheet.worksheet(current_month)
